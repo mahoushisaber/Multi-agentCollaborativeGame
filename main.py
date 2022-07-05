@@ -26,28 +26,44 @@ playerX = WIDTH * 0.9
 playerY = HEIGHT * 0.45
 playerX_change = 0
 playerY_change = 0
+# state for grabbing the ball or not
 global grabbable 
-grabbable = True
+grabbable = False
+holding = False
+pickup_range = 15
+
 grabSound = mixer.Sound("sounds/grab.wav")
 grabSound2 = mixer.Sound("sounds/drop.wav")
 
-def player():
+def player(x, y):
     # blit means draw
     screen.blit(playerImage, (playerX, playerY))
 
 
-# Enemy
-enemyImage = pygame.image.load('graphics/Enemy2.png')
-enemyImage = pygame.transform.scale(enemyImage, (40, 60)) 
+# player2
+player2Image = pygame.image.load('graphics/Player2.png')
+player2Image = pygame.transform.scale(player2Image, (40, 60)) 
 
-enemyX = WIDTH * 0.1
-enemyY = HEIGHT * 0.45
+player2X = WIDTH * 0.1
+player2Y = HEIGHT * 0.45
+player2X_change = 0
+player2Y_change = 0
 
-def enemy():
+def player2(x, y):
     # blit means draw
-    screen.blit(enemyImage, (enemyX, enemyY))
+    screen.blit(player2Image, (player2X, player2Y))
 
+# Ball
+ballImage = pygame.image.load('graphics/Ball.png')
+ballImage = pygame.transform.scale(ballImage, (40, 45)) 
+ballX = random.randint(30, (WIDTH * 0.9))
+ballY = random.randint(30, (HEIGHT* 0.9))
 
+def ball(x, y):
+    # blit means draw
+    screen.blit(ballImage, (ballX, ballY))
+    
+    
 # Game loop
 running = True
 while running:
@@ -77,17 +93,29 @@ while running:
                 # grab item
                 grabbable = not grabbable
                 if grabbable is True:
-                    grabSound.play()
                     # set ball's cordinates to the current cordinates of the player 
-                    ballX = playerX
-                    ballY = playerY
-                           
+                    print(ballX, playerX)
+                    # range of grabbing the ball: 10 by default 
+                    if (playerX - ballX < pickup_range) and (playerY - ballY < pickup_range):
+                        grabSound.play()
+                        #make ballImage transparent
+                        print("In range")
+                        holding = not holding
+                        # alpha_surf = pygame.Surface(ballImage.get_size(), pygame.SRCALPHA)
+                        # alpha_surf.fill((255, 255, 255, 0))
+                        # ballImage.blit(alpha_surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
                 # drop
                 if grabbable is False:
-                    grabSound2.play()
                     # set ball's cordinates to the current cordinates of the player 
-                    ballX = playerX
-                    ballY = playerY
+                    if holding is True:
+                        grabSound2.play()   
+                        ballX = playerX
+                        ballY = playerY
+                        holding = not holding
+                    # alpha_surf = pygame.Surface(ballImage.get_size(), pygame.SRCALPHA)
+                    # alpha_surf.fill((255, 255, 255, 255))
+                    # ballImage.blit(alpha_surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
                     
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
@@ -100,17 +128,31 @@ while running:
     # player movement with inputs
     playerX += playerX_change
     playerY += playerY_change
+    player2X += player2X_change
+    player2Y += player2Y_change
+  
     
     # Boundary
     if playerX <= 0:
         playerX = 0
-    elif playerX >= WIDTH * 0.95:
-        playerX = WIDTH * 0.95 
+    elif playerX >= WIDTH * 0.92:
+        playerX = WIDTH * 0.92 
     if playerY <= 0:
         playerY = 0
     elif playerY >= HEIGHT * 0.92:
         playerY = HEIGHT * 0.92
         
-    player()
-    enemy()
+    # Boundary check for player2
+    if player2X <= 0:
+            player2X = 0
+    elif player2X >= WIDTH * 0.92:
+        player2X = WIDTH * 0.92 
+    if player2Y <= 0:
+        player2Y = 0
+    elif player2Y >= HEIGHT * 0.92:
+        player2Y = HEIGHT * 0.92
+        
+    player(playerX, playerY)
+    player2(player2X, player2Y)
+    ball(ballX, ballY)
     pygame.display.update()
