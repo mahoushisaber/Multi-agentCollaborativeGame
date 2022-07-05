@@ -20,6 +20,7 @@ pygame.display.set_icon(icon)
 # Player
 playerImage = pygame.image.load('graphics/Player.png')
 playerImage = pygame.transform.scale(playerImage, (40, 60)) 
+player_up = playerImage
 
 playerX = WIDTH * 0.9
 playerY = HEIGHT * 0.45
@@ -61,12 +62,17 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 playerX_change = -speed
+                playerImage = pygame.transform.rotate(player_up, 90)
             if event.key == pygame.K_RIGHT:
                 playerX_change = speed
+                playerImage = pygame.transform.rotate(player_up, -90)
             if event.key == pygame.K_UP:
                 playerY_change = -speed
+                playerImage = pygame.transform.rotate(player_up, 0)
             if event.key == pygame.K_DOWN:
                 playerY_change = speed
+                playerImage = pygame.transform.rotate(player_up, 180)
+                
             if event.key == pygame.K_SPACE:
                 # grab item
                 grabbable = not grabbable
@@ -94,6 +100,17 @@ while running:
     # player movement with inputs
     playerX += playerX_change
     playerY += playerY_change
+    
+    # Boundary
+    if playerX <= 0:
+        playerX = 0
+    elif playerX >= WIDTH * 0.95:
+        playerX = WIDTH * 0.95 
+    if playerY <= 0:
+        playerY = 0
+    elif playerY >= HEIGHT * 0.92:
+        playerY = HEIGHT * 0.92
+        
     player()
     enemy()
     pygame.display.update()
