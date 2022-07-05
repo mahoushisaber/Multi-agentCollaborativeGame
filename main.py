@@ -120,6 +120,9 @@ def is_key_pressed():
 # Game loop
 running = True
 while running:
+    if holding:
+        ballX = playerX
+        ballY = playerY
     screen.fill((0, 0, 0))
     # draw the area line 
     pygame.draw.line(screen, (255,255,255), ((WIDTH /2), 0), ((WIDTH /2), HEIGHT), 1)
@@ -138,6 +141,7 @@ while running:
     if keyInput == pygame.K_s:
         playerY_change = speed
         playerImage = pygame.transform.rotate(player_up, 180)
+        
     if keyInput == pygame.K_SPACE:
         # grab item
         if grabbable is True:
@@ -150,7 +154,9 @@ while running:
                 print("Ball Picked")
                 holding = not holding
                 grabbable = False
-                # TODO: add collision with rect / sprite mask
+                # add owner to the ball
+                
+                
     if keyInput == pygame.K_v:
         # print("V","g: ", grabbable, "holding:", holding)
         # drop
@@ -173,9 +179,7 @@ while running:
             running = False
         # if keystroke is pressed, check the which action of the 4 movements it is
         # if event.type == pygame.KEYDOWN:
-
-
-          
+  
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
