@@ -32,7 +32,7 @@ playerY_change = 0
 # state for grabbing the ball or not
 global grabbable 
 grabbable = True
-holding = False
+# holding = False
 pickup_range = 17
 
 grabSound = mixer.Sound("sounds/grab.wav")
@@ -120,7 +120,7 @@ def is_key_pressed():
 # Game loop
 running = True
 while running:
-    if holding:
+    if not grabbable:
         ballX = playerX
         ballY = playerY
     screen.fill((0, 0, 0))
@@ -152,7 +152,7 @@ while running:
                 grabSound.play()
                 #make ballImage transparent
                 print("Ball Picked")
-                holding = not holding
+                # holding = not holding
                 grabbable = False
                 # add owner to the ball
                 
@@ -162,18 +162,18 @@ while running:
         # drop
         if grabbable is False:
             # set ball's cordinates to the current cordinates of the player 
-            if holding is True:
-                grabSound2.play()   
-                ballX = playerX
-                ballY = playerY
-                holding = not holding
-                grabbable = True
-                # putting close to the goal
-                if abs(goalX - ballX) < 22 and abs(goalY - ballY) < 22:
-                    print("Score 1 point")
-                    score += 1
-                    reset(pygame)
-    
+            # if holding is True:
+            grabSound2.play()   
+            ballX = playerX
+            ballY = playerY
+            # holding = not holding
+            grabbable = True
+            # putting close to the goal
+            if abs(goalX - ballX) < 22 and abs(goalY - ballY) < 22:
+                print("Score 1 point")
+                score += 1
+                reset(pygame)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
