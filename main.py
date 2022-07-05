@@ -31,9 +31,9 @@ playerX_change = 0
 playerY_change = 0
 # state for grabbing the ball or not
 global grabbable 
-grabbable = False
+grabbable = True
 holding = False
-pickup_range = 15
+pickup_range = 17
 
 grabSound = mixer.Sound("sounds/grab.wav")
 grabSound2 = mixer.Sound("sounds/drop.wav")
@@ -83,79 +83,97 @@ def draw_score():
     text = font.render('Score:'+ str(score), True, COLOR_WHITE)
     screen.blit(text, (WIDTH/2, 20))
     
-@staticmethod
+
 def get_current_time():
     return int(round(time.time()))
 
 # restting the game 
-def reset():
-        end_of_game = False
-        speed = 0.2
-        started_time = get_current_time()
-        score = 0
-        # TODO: 
-        # self.generate_balls()
-        # self.generate_players()
-        # self.load_map()
-        ## debug log for AI traning in future 
-        # interval = get_current_time() - self.started_time
-        # print("--------------- GAME RESET ---------------")
-        # print("Episode ends after:", interval, "(s)")
-        # print("Score:", self.score)
-        # print("------------------------------------------")
-        
-        # self.__render()
+def reset(self):
+    self.end_of_game = False
+    self.speed = 0.2
+    self.started_time = get_current_time()
+    self.score = 0
+    self.ballX = 20
+    self.ballY = HEIGHT / 2
+    print("resetting ")
+    # TODO: 
+    # self.generate_balls()
+    # self.generate_players()
+    # self.load_map()
+    ## debug log for AI traning in future 
+    # interval = get_current_time() - self.started_time
+    # print("--------------- GAME RESET ---------------")
+    # print("Episode ends after:", interval, "(s)")
+    # print("Score:", self.score)
+    # print("------------------------------------------")
+    
+    # self.__render()
+    
+# only accepting one key input at a time
+def is_key_pressed():
+    keys = pygame.key.get_pressed()
+    for i in range(len(keys)):
+        if keys[i] != 0:
+            return i
+    return -1
+
 # Game loop
 running = True
 while running:
-    
     screen.fill((0, 0, 0))
     # draw the area line 
     pygame.draw.line(screen, (255,255,255), ((WIDTH /2), 0), ((WIDTH /2), HEIGHT), 1)
+    keyInput = is_key_pressed() 
+    playerX_change = 0
+    playerY_change = 0
+    if keyInput == pygame.K_a:
+        playerX_change = -speed
+        playerImage = pygame.transform.rotate(player_up, 90)
+    if keyInput == pygame.K_d:
+        playerX_change = speed
+        playerImage = pygame.transform.rotate(player_up, -90)
+    if keyInput == pygame.K_w:
+        playerY_change = -speed
+        playerImage = pygame.transform.rotate(player_up, 0)
+    if keyInput == pygame.K_s:
+        playerY_change = speed
+        playerImage = pygame.transform.rotate(player_up, 180)
+    if keyInput == pygame.K_SPACE:
+        # grab item
+        if grabbable is True:
+            # set ball's cordinates to the current cordinates of the player 
+            # print(ballX, playerX)
+            # range of grabbing the ball: 10 by default 
+            if (abs(playerX - ballX) < pickup_range) and (abs(playerY - ballY) < pickup_range + 3):
+                grabSound.play()
+                #make ballImage transparent
+                print("Ball Picked")
+                holding = not holding
+                grabbable = False
+                # TODO: add collision with rect / sprite mask
+    if keyInput == pygame.K_v:
+        # print("V","g: ", grabbable, "holding:", holding)
+        # drop
+        if grabbable is False:
+            # set ball's cordinates to the current cordinates of the player 
+            if holding is True:
+                grabSound2.play()   
+                ballX = playerX
+                ballY = playerY
+                holding = not holding
+                grabbable = True
+                # putting close to the goal
+                if abs(goalX - ballX) < 22 and abs(goalY - ballY) < 22:
+                    print("Score 1 point")
+                    score += 1
+                    reset(pygame)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         # if keystroke is pressed, check the which action of the 4 movements it is
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                playerX_change = -speed
-                playerImage = pygame.transform.rotate(player_up, 90)
-            if event.key == pygame.K_RIGHT:
-                playerX_change = speed
-                playerImage = pygame.transform.rotate(player_up, -90)
-            if event.key == pygame.K_UP:
-                playerY_change = -speed
-                playerImage = pygame.transform.rotate(player_up, 0)
-            if event.key == pygame.K_DOWN:
-                playerY_change = speed
-                playerImage = pygame.transform.rotate(player_up, 180)
-                
-            if event.key == pygame.K_SPACE:
-                # grab item
-                grabbable = not grabbable
-                if grabbable is True:
-                    # set ball's cordinates to the current cordinates of the player 
-                    print(ballX, playerX)
-                    # range of grabbing the ball: 10 by default 
-                    if (playerX - ballX < pickup_range) and (playerY - ballY < pickup_range + 3):
-                        grabSound.play()
-                        #make ballImage transparent
-                        print("Ball Picked")
-                        holding = not holding
-                        alpha_surf = pygame.Surface(ballImage.get_size(), pygame.SRCALPHA)
-                        alpha_surf.fill((255, 255, 255, 0))
-                        ballImage.blit(alpha_surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-                # drop
-                if grabbable is False:
-                    # set ball's cordinates to the current cordinates of the player 
-                    if holding is True:
-                        grabSound2.play()   
-                        ballX = playerX
-                        ballY = playerY
-                        holding = not holding
-                        # alpha_surf = pygame.Surface(ballImage.get_size(), pygame.SRCALPHA)
-                        # alpha_surf.fill((255, 255, 255, 255))
-                        # ballImage.blit(alpha_surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        # if event.type == pygame.KEYDOWN:
+
 
           
         if event.type == pygame.KEYUP:
