@@ -1,3 +1,6 @@
+import math
+import random
+from pygame import mixer
 import pygame 
 
 WIDTH = HEIGHT = 800
@@ -20,6 +23,12 @@ playerImage = pygame.transform.scale(playerImage, (40, 60))
 
 playerX = WIDTH * 0.9
 playerY = HEIGHT * 0.45
+playerX_change = 0
+playerY_change = 0
+global grabbable 
+grabbable = True
+grabSound = mixer.Sound("sounds/grab.wav")
+grabSound2 = mixer.Sound("sounds/drop.wav")
 
 def player():
     # blit means draw
@@ -47,7 +56,44 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
+        # if keystroke is pressed, check the which action of the 4 movements it is
+        speed = 0.2
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                playerX_change = -speed
+            if event.key == pygame.K_RIGHT:
+                playerX_change = speed
+            if event.key == pygame.K_UP:
+                playerY_change = -speed
+            if event.key == pygame.K_DOWN:
+                playerY_change = speed
+            if event.key == pygame.K_SPACE:
+                # grab item
+                grabbable = not grabbable
+                if grabbable is True:
+                    grabSound.play()
+                    # set ball's cordinates to the current cordinates of the player 
+                    ballX = playerX
+                    ballY = playerY
+                           
+                # drop
+                if grabbable is False:
+                    grabSound2.play()
+                    # set ball's cordinates to the current cordinates of the player 
+                    ballX = playerX
+                    ballY = playerY
+                    
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                playerX_change = 0
+            if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                playerY_change = 0
+            # TODO: check if item is around to pick up, if not, state does not change
+            pass
+
+    # player movement with inputs
+    playerX += playerX_change
+    playerY += playerY_change
     player()
     enemy()
     pygame.display.update()
