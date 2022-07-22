@@ -3,14 +3,25 @@ from dataclasses import dataclass
 import sys
 import numpy as np
 from gym import spaces
+from gym.utils import EzPickle
+from pettingzoo import ParallelEnv
+from pettingzoo.utils import parallel_to_aec
 from v0.sprite.dest import DestSprite
 from v0.sprite.ground import GroundSprite
 from v0.sprite import player
 from v0.sprite.player import PlayerSprite
 from v0.sprite.ball import BallSprite
 
+
+def parallel_env(**kwargs):
+    env = raw_env(**kwargs)
+    return env
+
+def aec_env(**kwargs):
+    return parallel_to_aec(raw_env(**kwargs))
+
 @dataclass(init=True, repr=True)
-class CoopGame():
+class CoopGame(ParallelEnv):
     player_speed: int = 5
     tile_size: int = 40
     map_width: int = 20
@@ -26,6 +37,15 @@ class CoopGame():
 
     metadata = {"render_modes": ["human"], "name": "coop_par"}
 
+    def __post_init__(self):
+        self.screen_width = self.map_width * self.tile_size
+        self.screen_height = self.map_height * self.tile_size
+        self.__init_pygame()
+        self.__init_game_logic()
+        self.__init_petting_zoo()
+
+        self.reset()
+
     def __init_game_logic(self):
         self.main_ground = pygame.Rect(
             (0, 0), (self.screen_width, self.screen_height))
@@ -39,7 +59,41 @@ class CoopGame():
         self.__init_grounds()
         self.__spawn_ball()
         self.__init_dest()
-        
+
+    def __init_petting_zoo(self):
+        self.possible_agents = ["red_player", "green_player"]
+        self.agent_name_mapping = {
+            "red_player": self.player1,
+            "green_player": self.player2,
+        }
+
+        self._action_spaces = {
+            agent: spaces.Discrete(player.NUM_ACTIONS)
+            for agent in self.possible_agents
+        }
+        if self.observation_type == "rgb":
+            self.observation_shape = (self.screen_width, self.screen_height, 3)
+            self.current_frame = np.zeros(
+                self.observation_shape, dtype=np.uint8)
+            self._observation_spaces = {
+                agent: spaces.Box(
+                    low=0,
+                    high=255,
+                    shape=self.observation_shape,
+                    dtype=np.uint8
+                )
+                for agent in self.possible_agents
+            }
+        else:
+            raise NotImplementedError(
+                "observation_type %s is not supported" % self.observation_type)
+
+    def observation_space(self, agent):
+        return self._observation_spaces[agent]
+
+    def action_space(self, agent):
+        return self._action_spaces[agent]
+
     def __init_pygame(self):
         pygame.init()
         if self.render_display:
@@ -51,18 +105,79 @@ class CoopGame():
                 (self.screen_width, self.screen_height))
 
     def reset(self, seed=None):
+        """
+        Reset needs to initialize the `agents` attribute and must set up the
+        environment so that render(), and step() can be called without issues.
+
+        Here it initializes the `num_moves` variable which counts the number of
+        hands that are played.
+
+        Returns the observations for each agent
+        """
+        self.agents = self.possible_agents[:]
         self.steps = 0
         for player in self.players:
             player.reset()
         for ball in self.balls:
             ball.respawn()
         self.__update_screen()
+        observations = {agent: self.observe(agent) for agent in self.agents}
+        return observations
+
+    def step(self, actions):
+        """
+        step(action) takes in an action for the current agent (specified by
+        agent_selection) and needs to update
+        - rewards
+        - _cumulative_rewards (accumulating the rewards)
+        - dones
+        - infos
+        - agent_selection (to the next agent)
+        And any internal state used by observe() or render()
+        """
+        # If a user passes in actions with no agents, then just return empty observations, etc.
+        if not actions:
+            self.agents = []
+            self.__tick()
+            return {}, {}, {}, {}
+        self.steps += 1
+        self.rewards = {agent: 0 for agent in self.agents}
+        for agent in actions:
+            self.__handle_action(agent, actions[agent])
+
+        self.__tick()
+
+        env_done = self.is_terminal()
+        dones = {agent: env_done for agent in self.agents}
+
+        observations = {
+            agent: self.observe(agent) for agent in self.agents
+        }
+
+        infos = {agent: {} for agent in self.agents}
+
+        if env_done:
+            self.agents = []
+
+        return observations, self.rewards, dones, infos
 
     def render(self, mode='human'):
         if self.render_display:
             pygame.display.update()
         if self.frame_rate != 0:
             pygame.time.Clock().tick(self.frame_rate)
+
+    def observe(self, agent):
+        if self.observation_type == "rgb":
+            return self.current_frame
+
+    def is_terminal(self):
+        return self.steps >= self.max_steps
+
+    def close(self):
+        pygame.display.quit()
+        pygame.quit()
+        sys.exit()
 
     def __tick(self):
         self.__handle_events()
@@ -166,3 +281,9 @@ class CoopGame():
                 player = pygame.sprite.spritecollideany(ball, self.players)
                 if player is not None:
                     ball.carry_by(player)
+
+class raw_env(CoopGame, EzPickle):
+
+    def __init__(self, **kwargs):
+        EzPickle.__init__(self, **kwargs)
+        CoopGame.__init__(self, **kwargs)
