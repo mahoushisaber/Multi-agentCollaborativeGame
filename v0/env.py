@@ -179,6 +179,10 @@ class CoopGame(ParallelEnv):
         pygame.quit()
         sys.exit()
 
+    def __capture_screen(self):
+        pygame.pixelcopy.surface_to_array(self.current_frame, self.screen)
+        return self.current_frame
+
     def __tick(self):
         self.__handle_events()
         self.players.update()
@@ -196,6 +200,8 @@ class CoopGame(ParallelEnv):
             self.players.draw(self.screen)
             self.dests.draw(self.screen)
             self.balls.draw(self.screen)
+            if self.observation_type == "rgb":
+                self.__capture_screen()
 
     def __handle_events(self):
         for event in pygame.event.get():
