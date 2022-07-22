@@ -3,6 +3,7 @@ import random
 from pygame import mixer
 import pygame 
 import time
+from player import PlayerObj
 
 WIDTH = HEIGHT = 800
 COLOR_WHITE = (255, 255, 255)
@@ -60,6 +61,7 @@ ballImage = pygame.image.load('graphics/Ball.png').convert_alpha()
 ballImage = pygame.transform.scale(ballImage, (40, 45)) 
 # ballX = random.randint(30, (WIDTH * 0.9))
 # ballY = random.randint(30, (HEIGHT* 0.9))
+
 ballX = 20
 ballY = HEIGHT / 2
 
@@ -86,6 +88,7 @@ def draw_score():
 
 def get_current_time():
     return int(round(time.time()))
+
 
 # restting the game 
 def reset(self):
@@ -219,6 +222,8 @@ while running:
     player2(player2X, player2Y)
     ball(ballX, ballY)
     goal(goalX, goalY)
+    
+    # generate_player()
 
     draw_score()
     pygame.display.update()
