@@ -12,7 +12,7 @@ from pprint import pprint
 
 def load_env(train=True) -> gym.Env:
     env_kwargs = dict(control=False, render_display=True, frame_rate=0,
-    player_speed=20, slowdown_factor=1.0,
+    player_speed=20, slowdown_factor=4.0,
     max_steps=60 * 60, observation_type="rgb")
     if train is True:
         env = parallel_env(**env_kwargs)
@@ -39,19 +39,22 @@ def show_image(img):
     plt.imshow(img, interpolation="nearest")
     plt.show()
 
-def train(model_name, save_freq=100000):
+def train(model_name, inherit, save_freq=100000):
     env = load_env(train=True)
-    model = PPO("CnnPolicy", env, n_steps=128, n_epochs=4, batch_size=256,
+    if inherit is True:
+        model = PPO.load(model_name)
+    else:
+        model = PPO("CnnPolicy", env, n_steps=128, n_epochs=4, batch_size=256,
                 clip_range=linear_schedule(0.1), learning_rate=linear_schedule(2.5e-4),
                 # clip_range=0.1, learning_rate=2.5e-4,
                 vf_coef=0.5, ent_coef=0.01, verbose=3, tensorboard_log="models/v0/ppo")
-    model.learn(total_timesteps=20_000,
+    model.learn(total_timesteps=10_000_000,
                 callback=CheckpointCallback(
                     save_freq=max(save_freq // env.num_envs, 1),
                     save_path="models/v0/ppo",
                     verbose=1,
                 ))
-    model.save(model_name)
+    model.save("models/v0/ppo/rl_model_final")
 
 
 def enjoy(model_name):
@@ -70,9 +73,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("action", choices=["train", "enjoy"])
 # TODO add path arg as well
 parser.add_argument("-i", dest="model_name", type=str, default="models/v0/ppo/rl_model_final")
+parser.add_argument("-l", dest="inherit", action="store_true", default=False)
+
 args = parser.parse_args()
 
 if args.action == "train":
-    train(args.model_name)
+    train(args.model_name, args.inherit)
 else:
     enjoy(args.model_name)
