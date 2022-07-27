@@ -281,9 +281,14 @@ class CoopGame(ParallelEnv):
                 score_dest = pygame.sprite.spritecollideany(ball, self.dests)
                 if score_dest:
                     for agent in self.rewards:
-                        self.rewards[agent] += 100
+                        self.rewards[agent] += 10
+                    if ball.ball_find_carrier(ball, self.player1):  
+                        self.rewards[self.player1.name] += 1                
+                        self.rewards[self.player2.name] -= 1    
+                    if ball.ball_find_carrier(ball, self.player2):  
+                        self.rewards[self.player2.name] += 1                
+                        self.rewards[self.player1.name] -= 1             
                     self.ball.respawn()
-                    self.rewards[ball.carrier] += 1                
             else:
                 player = pygame.sprite.spritecollideany(ball, self.players)
                 if player is not None:
