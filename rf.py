@@ -45,7 +45,7 @@ def train(model_name, save_freq=100000):
                 clip_range=linear_schedule(0.1), learning_rate=linear_schedule(2.5e-4),
                 # clip_range=0.1, learning_rate=2.5e-4,
                 vf_coef=0.5, ent_coef=0.01, verbose=3, tensorboard_log="models/v0/ppo")
-    model.learn(total_timesteps=2_000_000,
+    model.learn(total_timesteps=20_000,
                 callback=CheckpointCallback(
                     save_freq=max(save_freq // env.num_envs, 1),
                     save_path="models/v0/ppo",

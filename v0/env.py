@@ -61,10 +61,10 @@ class CoopGame(ParallelEnv):
         self.__init_dest()
 
     def __init_petting_zoo(self):
-        self.possible_agents = ["red_player", "green_player"]
+        self.possible_agents = [self.player1.name, self.player2.name]
         self.agent_name_mapping = {
-            "red_player": self.player1,
-            "green_player": self.player2,
+            self.player1.name: self.player1,
+            self.player2.name: self.player2,
         }
 
         self._action_spaces = {
@@ -251,13 +251,13 @@ class CoopGame(ParallelEnv):
         self.player2_grounds.add(ground)
 
     def __init_players(self):
-        self.player1 = PlayerSprite(pygame.Color(
+        self.player1 = PlayerSprite("red_player", pygame.Color(
             255, 0, 0), (0, self.screen_height // 2), self.tile_size, self.tile_size,
             self.main_ground, self.player1_grounds, self.obstacles, self.player_speed)
         self.players.add(self.player1)
         self.obstacles.add(self.player1)
 
-        self.player2 = PlayerSprite(pygame.Color(
+        self.player2 = PlayerSprite("green_player", pygame.Color(
             0, 255, 0), (self.screen_width - self.tile_size, self.screen_height // 2), self.tile_size, self.tile_size,
             self.main_ground, self.player2_grounds, self.obstacles, self.player_speed)
         self.players.add(self.player2)
@@ -281,8 +281,9 @@ class CoopGame(ParallelEnv):
                 score_dest = pygame.sprite.spritecollideany(ball, self.dests)
                 if score_dest:
                     for agent in self.rewards:
-                        self.rewards[agent] += 1
+                        self.rewards[agent] += 100
                     self.ball.respawn()
+                    self.rewards[ball.carrier] += 1                
             else:
                 player = pygame.sprite.spritecollideany(ball, self.players)
                 if player is not None:

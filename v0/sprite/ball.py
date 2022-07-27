@@ -30,6 +30,6 @@ class BallSprite(pygame.sprite.Sprite):
     
     @staticmethod
     def ball_find_carrier(ball, player):
-        if ball.owner is player:
+        if ball.carrier is player:
             return False
         return ball.rect.collidepoint(player.rect.center)

@@ -14,8 +14,9 @@ NUM_ACTIONS = len(ACTIONS)
 
 class PlayerSprite(pygame.sprite.Sprite):
 
-    def __init__(self, color, pos, width, height, main_ground, player_ground, obstacles, speed=5):
+    def __init__(self, name, color, pos, width, height, main_ground, player_ground, obstacles, speed=5):
         super().__init__()
+        self.name = name
         self.main_ground = main_ground
         self.player_ground = player_ground
         self.obstacles = obstacles
