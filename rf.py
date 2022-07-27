@@ -43,12 +43,13 @@ def train(model_name, inherit, save_freq=100000):
     env = load_env(train=True)
     if inherit is True:
         model = PPO.load(model_name)
+        model.set_env(env)
     else:
         model = PPO("CnnPolicy", env, n_steps=128, n_epochs=4, batch_size=256,
                 clip_range=linear_schedule(0.1), learning_rate=linear_schedule(2.5e-4),
                 # clip_range=0.1, learning_rate=2.5e-4,
                 vf_coef=0.5, ent_coef=0.01, verbose=3, tensorboard_log="models/v0/ppo")
-    model.learn(total_timesteps=10_000_000,
+    model.learn(total_timesteps=200_000,
                 callback=CheckpointCallback(
                     save_freq=max(save_freq // env.num_envs, 1),
                     save_path="models/v0/ppo",
