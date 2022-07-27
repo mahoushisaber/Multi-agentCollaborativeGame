@@ -60,8 +60,8 @@ def enjoy(model_name):
     env.reset()
     for agent in env.agent_iter():
         obs, reward, done, info = env.last()
-        show_image(obs[:, :, 0:3])
-        act = model.predict(obs, deterministic=True)[0] if not done else None
+        # show_image(obs[:, :, 0:3])
+        act = model.predict(obs, deterministic=False)[0] if not done else None
         env.step(act)
         env.render()
 

@@ -24,7 +24,9 @@ class BallSprite(pygame.sprite.Sprite):
 
     def respawn(self):
         self.rect.topleft = self.spwan_pos
-        self.carrier = None
+        if self.carrier is not None:
+            self.carrier.carrying = None
+            self.carrier = None
     
     @staticmethod
     def ball_find_carrier(ball, player):
