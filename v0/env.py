@@ -37,6 +37,7 @@ class CoopGame(ParallelEnv):
     max_steps: int = 60 * 60
     observation_type: str = "rgb"
     score: int = 0
+    random_pos: bool = False
 
     metadata = {"render_modes": ["human"], "name": "coop_par"}
 
@@ -124,7 +125,7 @@ class CoopGame(ParallelEnv):
         for player in self.players:
             player.reset()
         for ball in self.balls:
-            ball.respawn()
+            ball.respawn(self.ball_spawn)
         self.__update_screen()
         observations = {agent: self.observe(agent) for agent in self.agents}
         return observations
@@ -194,7 +195,6 @@ class CoopGame(ParallelEnv):
         self.balls.update()
         self.scores.update()
         self.__ball_update()
-        # self.__update_update()
         self.__update_screen()
         if self.render_display:
             pygame.display.update()
@@ -207,7 +207,7 @@ class CoopGame(ParallelEnv):
             self.players.draw(self.screen)
             self.dests.draw(self.screen)
             self.balls.draw(self.screen)
-            self.scores.draw(self.screen)
+            # self.scores.draw(self.screen)
             
             if self.observation_type == "rgb":
                 self.__capture_screen()
@@ -246,16 +246,30 @@ class CoopGame(ParallelEnv):
 
     def __init_grounds(self):
         ground = GroundSprite(pygame.Color(0, 0, 0),
-                              (0, 0, self.screen_width // 2, self.screen_height))
+                              (0, 0, self.screen_width // 2, self.screen_height // 2))
         ground.update_speed(self.player1, 1.0)
         ground.update_speed(self.player2, self.slowdown_factor)
         self.player1_grounds.add(ground)
         self.player2_grounds.add(ground)
 
         ground = GroundSprite(pygame.Color(128, 128, 128),
-                              (self.screen_width // 2, 0, self.screen_width, self.screen_height))
+                              (self.screen_width // 2, 0, self.screen_width, self.screen_height // 2))
         ground.update_speed(self.player1, self.slowdown_factor)
         ground.update_speed(self.player2, 1.0)
+        self.player1_grounds.add(ground)
+        self.player2_grounds.add(ground)
+    
+        ground = GroundSprite(pygame.Color(128, 128, 128),
+                              (0, self.screen_height // 2, self.screen_width // 2, self.screen_height))
+        ground.update_speed(self.player1, self.slowdown_factor)
+        ground.update_speed(self.player2, 1.0)
+        self.player1_grounds.add(ground)
+        self.player2_grounds.add(ground)
+
+        ground = GroundSprite(pygame.Color(0, 0, 0),
+                              (self.screen_width // 2, self.screen_height // 2, self.screen_width, self.screen_height))
+        ground.update_speed(self.player1, 1.0)
+        ground.update_speed(self.player2, self.slowdown_factor)
         self.player1_grounds.add(ground)
         self.player2_grounds.add(ground)
 
@@ -273,12 +287,16 @@ class CoopGame(ParallelEnv):
         self.obstacles.add(self.player2)
 
     def __spawn_ball(self):
+        if self.random_pos:
+            self.ball_spawn = self.__generate_random_pos()
         self.ball = BallSprite(pygame.Color(0, 0, 255),
                                self.ball_spawn,
                                self.tile_size // 2, self.tile_size // 2)
         self.balls.add(self.ball)
 
     def __init_dest(self):
+        if self.random_pos:
+            self.dest_pos = self.__generate_random_pos()
         self.dest = DestSprite(pygame.Color(128, 0, 255),
                                self.dest_pos,
                                self.tile_size, self.tile_size)
@@ -302,11 +320,19 @@ class CoopGame(ParallelEnv):
                     if ball.ball_find_carrier(ball, self.player2):  
                         self.rewards[self.player2.name] += 1                
                         self.rewards[self.player1.name] -= 1             
-                    self.ball.respawn()
+                    if self.random_pos:
+                        self.ball_spawn = self.__generate_random_pos()
+                        self.dest_pos = self.__generate_random_pos()
+                    self.ball.respawn(self.ball_spawn)
+                    self.dest.respawn(self.dest_pos)
             else:
                 player = pygame.sprite.spritecollideany(ball, self.players)
                 if player is not None:
                     ball.carry_by(player)
+
+    def __generate_random_pos(self):
+        [x, y] = np.random.randint([0, 0], [self.map_width, self.map_height])
+        return (x * self.tile_size, y * self.tile_size)
 
 class raw_env(CoopGame, EzPickle):
 

@@ -9,7 +9,6 @@ class BallSprite(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
-        self.spwan_pos = pos
         self.carrier = None
 
     def update(self):
@@ -22,8 +21,8 @@ class BallSprite(pygame.sprite.Sprite):
         self.carrier = carrier
         self.carrier.carrying = self
 
-    def respawn(self):
-        self.rect.topleft = self.spwan_pos
+    def respawn(self, pos):
+        self.rect.topleft = pos
         if self.carrier is not None:
             self.carrier.carrying = None
             self.carrier = None
