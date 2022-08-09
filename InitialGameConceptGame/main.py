@@ -225,5 +225,5 @@ while running:
     
     # generate_player()
 
-    draw_score()
+    # draw_score()
     pygame.display.update()
