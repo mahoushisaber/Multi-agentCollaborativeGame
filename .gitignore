@@ -1,3 +1,8 @@
 __pycache__
 saved_observations
 models
+.vscode
+build
+dist
+rf.spec
+test_env.spec
