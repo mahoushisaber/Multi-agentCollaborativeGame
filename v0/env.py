@@ -11,6 +11,7 @@ from v0.sprite.ground import GroundSprite
 from v0.sprite import player
 from v0.sprite.player import PlayerSprite
 from v0.sprite.ball import BallSprite
+from v0.sprite.score import ScoreSprite
 
 
 def parallel_env(**kwargs):
@@ -31,9 +32,11 @@ class CoopGame(ParallelEnv):
     render_display: bool = True
     ball_spawn = (0, 260)
     dest_pos = (760, 260)
+    score_pos = (340, 20)
     slowdown_factor: float = 3.0
     max_steps: int = 60 * 60
     observation_type: str = "rgb"
+    score: int = 0
 
     metadata = {"render_modes": ["human"], "name": "coop_par"}
 
@@ -55,10 +58,12 @@ class CoopGame(ParallelEnv):
         self.dests = pygame.sprite.Group()
         self.player1_grounds = pygame.sprite.Group()
         self.player2_grounds = pygame.sprite.Group()
+        self.scores = pygame.sprite.Group()
         self.__init_players()
         self.__init_grounds()
         self.__spawn_ball()
         self.__init_dest()
+        self.__init_score()
 
     def __init_petting_zoo(self):
         self.possible_agents = [self.player1.name, self.player2.name]
@@ -172,7 +177,7 @@ class CoopGame(ParallelEnv):
             return self.current_frame
 
     def is_terminal(self):
-        return self.steps >= self.max_steps
+        return self.steps >= self.max_steps and self.max_steps != 0 
 
     def close(self):
         pygame.display.quit()
@@ -187,7 +192,9 @@ class CoopGame(ParallelEnv):
         self.__handle_events()
         self.players.update()
         self.balls.update()
+        self.scores.update()
         self.__ball_update()
+        # self.__update_update()
         self.__update_screen()
         if self.render_display:
             pygame.display.update()
@@ -200,6 +207,8 @@ class CoopGame(ParallelEnv):
             self.players.draw(self.screen)
             self.dests.draw(self.screen)
             self.balls.draw(self.screen)
+            self.scores.draw(self.screen)
+            
             if self.observation_type == "rgb":
                 self.__capture_screen()
 
@@ -275,11 +284,16 @@ class CoopGame(ParallelEnv):
                                self.tile_size, self.tile_size)
         self.dests.add(self.dest)
 
+    def __init_score(self):
+        self.score = ScoreSprite(self.score_pos)
+        self.scores.add(self.score)
+    
     def __ball_update(self):
         for ball in self.balls:
             if ball.carrier:
                 score_dest = pygame.sprite.spritecollideany(ball, self.dests)
                 if score_dest:
+                    self.score.value += 1
                     for agent in self.rewards:
                         self.rewards[agent] += 10
                     if ball.ball_find_carrier(ball, self.player1):  
