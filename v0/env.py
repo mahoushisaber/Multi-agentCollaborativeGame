@@ -246,32 +246,32 @@ class CoopGame(ParallelEnv):
 
     def __init_grounds(self):
         ground = GroundSprite(pygame.Color(0, 0, 0),
-                              (0, 0, self.screen_width // 2, self.screen_height // 2))
+                              (0, 0, self.screen_width // 2, self.screen_height))
         ground.update_speed(self.player1, 1.0)
         ground.update_speed(self.player2, self.slowdown_factor)
         self.player1_grounds.add(ground)
         self.player2_grounds.add(ground)
 
         ground = GroundSprite(pygame.Color(128, 128, 128),
-                              (self.screen_width // 2, 0, self.screen_width, self.screen_height // 2))
-        ground.update_speed(self.player1, self.slowdown_factor)
-        ground.update_speed(self.player2, 1.0)
-        self.player1_grounds.add(ground)
-        self.player2_grounds.add(ground)
+                              (self.screen_width // 2, 0, self.screen_width, self.screen_height))
+        # ground.update_speed(self.player1, self.slowdown_factor)
+        # ground.update_speed(self.player2, 1.0)
+        # self.player1_grounds.add(ground)
+        # self.player2_grounds.add(ground)
     
-        ground = GroundSprite(pygame.Color(128, 128, 128),
-                              (0, self.screen_height // 2, self.screen_width // 2, self.screen_height))
+        # ground = GroundSprite(pygame.Color(128, 128, 128),
+        #                       (0, self.screen_height // 2, self.screen_width // 2, self.screen_height))
         ground.update_speed(self.player1, self.slowdown_factor)
         ground.update_speed(self.player2, 1.0)
         self.player1_grounds.add(ground)
         self.player2_grounds.add(ground)
 
-        ground = GroundSprite(pygame.Color(0, 0, 0),
-                              (self.screen_width // 2, self.screen_height // 2, self.screen_width, self.screen_height))
-        ground.update_speed(self.player1, 1.0)
-        ground.update_speed(self.player2, self.slowdown_factor)
-        self.player1_grounds.add(ground)
-        self.player2_grounds.add(ground)
+        # ground = GroundSprite(pygame.Color(0, 0, 0),
+        #                       (self.screen_width // 2, self.screen_height // 2, self.screen_width, self.screen_height))
+        # ground.update_speed(self.player1, 1.0)
+        # ground.update_speed(self.player2, self.slowdown_factor)
+        # self.player1_grounds.add(ground)
+        # self.player2_grounds.add(ground)
 
     def __init_players(self):
         self.player1 = PlayerSprite("red_player", pygame.Color(
@@ -312,6 +312,9 @@ class CoopGame(ParallelEnv):
                 score_dest = pygame.sprite.spritecollideany(ball, self.dests)
                 if score_dest:
                     self.score.value += 1
+                    # showing score in cmd
+                    print(self.score.value)
+                    
                     for agent in self.rewards:
                         self.rewards[agent] += 10
                     if ball.ball_find_carrier(ball, self.player1):  

@@ -10,7 +10,7 @@ done = False
 while not done:
     env.step(None)
     env.render()
-    # print(env.score)
+    # print(env.score.value)
     if not env:
         done = True
 # env = parallel_env(**env_kwargs)
