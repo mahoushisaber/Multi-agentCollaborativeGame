@@ -13,7 +13,7 @@ from pprint import pprint
 def load_env(train=True) -> gym.Env:
     env_kwargs = dict(control=False, render_display=True, frame_rate=0,
     player_speed=20, slowdown_factor=4.0,
-    max_steps=60 * 60, observation_type="rgb", random_pos = True)
+    max_steps=60 * 60, observation_type="rgb", random_pos = False)
     if train is True:
         env = parallel_env(**env_kwargs)
     else:
